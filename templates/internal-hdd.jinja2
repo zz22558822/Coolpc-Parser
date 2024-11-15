@@ -56,6 +56,9 @@
         td, th {
             text-align: center;
         }
+		#myTable tbody tr .none-text {
+			color: #FA8072;
+		}
     </style>
     <script>
         function defaultSelect2($cell, indx) {
@@ -99,39 +102,39 @@
 </head>
 <body>
 <h1>傳統內接硬碟HDD</h1>
-<h6>資料來自於原價屋</h6>
-<h6>網頁更新時間：{{ update_time }}</h6>
-<button type="button" class="reset">Reset Filter</button>
+<h4>資料來自於原價屋</h4>
+<h4>網頁更新時間：{{ update_time }}</h4>
+<button type="button" class="reset">清除篩選器</button>
 <table id="myTable" class="tablesorter tablesorter-default">
     <thead>
     <tr>
         <th class="filter-false">#</th>
-        <th class="filter-onlyAvail">Class</th>
-        <th class="filter-onlyAvail">Brand</th>
-        <th class="filter-onlyAvail">Size (TB)</th>
-        <th class="filter-onlyAvail">Series</th>
-        <th class="filter-onlyAvail">Memory (MB)</th>
-        <th class="filter-onlyAvail" data-placeholder="Model">Model</th>
-        <th class="filter-onlyAvail">RPM</th>
-        <th class="filter-onlyAvail">Warranty (Year)</th>
-        <th class="price">Price</th>
-        <th class="filter-false">Size/Price (MB/TWD)</th>
+        <th class="filter-onlyAvail">種類</th>
+        <th class="filter-onlyAvail">品牌</th>
+        <th class="filter-onlyAvail">容量 (T)</th>
+        <th class="filter-onlyAvail">系列</th>
+        <th class="filter-onlyAvail">快取 (MB)</th>
+        <th class="filter-onlyAvail" data-placeholder="型號">型號</th>
+        <th class="filter-onlyAvail">轉速 RPM</th>
+        <th class="filter-onlyAvail">保固 (年)</th>
+        <th class="price">價格</th>
+        <th class="filter-false">每T價</th>
     </tr>
     </thead>
     <tbody>
     {% for item in items %}
         <tr>
             <td>{{ loop.index }}</td>
-            <td>{{ item.subtitle }}</td>
-            <td>{{ item.brand }}</td>
-            <td>{{ item.size }}</td>
-            <td>{{ item.series }}</td>
-            <td>{{ item.memory }}</td>
-            <td>{{ item.model }}</td>
-            <td>{{ item.rpm }}</td>
-            <td>{{ item.warranty }}</td>
-            <td>{{ item.price }}</td>
-            <td>{{ item.cp_value|int }}</td>
+            <td{% if item.subtitle is none %} class="none-text"{% endif %}>{{ item.subtitle }}</td>
+            <td{% if item.brand is none %} class="none-text"{% endif %}>{{ item.brand }}</td>
+            <td{% if item.size is none %} class="none-text"{% endif %}>{{ item.size }}</td>
+            <td{% if item.series is none %} class="none-text"{% endif %}>{{ item.series }}</td>
+            <td{% if item.memory is none %} class="none-text"{% endif %}>{{ item.memory }}</td>
+            <td{% if item.model is none %} class="none-text"{% endif %}>{{ item.model }}</td>
+            <td{% if item.rpm is none %} class="none-text"{% endif %}>{{ item.rpm }}</td>
+            <td{% if item.warranty is none %} class="none-text"{% endif %}>{{ item.warranty }}</td>
+            <td{% if item.price is none %} class="none-text"{% endif %}>{{ item.price }}</td>
+            <td{% if item.cp_value is none %} class="none-text"{% endif %}>{{ item.cp_value|int }}</td>
         </tr>
     {% endfor %}
     </tbody>

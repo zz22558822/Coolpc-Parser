@@ -15,50 +15,11 @@ class InternalHdd:
         self.optgroups = self.get_optgroups()
         self.options = self.get_options()
 
-    # # 嚴謹查詢
-    # def get_tag(self):
-    #     soup = get_index_soup(is_coolpc_having_fucking_garbage_html=True)
-        
-    #     # 查看 HTML 結構
-    #     # print(soup)
-    #     # print("-----------------------------------------------------------------")
-        
-    #     title_tag = soup.find(text=self.title)
-        
-    #     # 確認 title_tag 是否找到
-    #     # print("Title tag found:", title_tag)
-    #     # print("-----------------------------------------------------------------")
-
-    #     if title_tag is None:
-    #         raise ValueError(f"無法在 HTML 中找到標題 '{self.title}'，請檢查內容或標題拼寫是否正確。")
-    #     tag: Tag = title_tag.parent
-    #     return tag
-
-    # 模糊查詢
     def get_tag(self):
         soup = get_index_soup(is_coolpc_having_fucking_garbage_html=True)
-        
-        # 查看 HTML 結構
-        # print(soup)
-        # print("-----------------------------------------------------------------")
-        
-        # 在所有 <td> 標籤中尋找指定標題 (模糊查詢)
-        title_td = None
-        for td in soup.find_all("td", class_="t"):
-            if self.title in td.text:  # 使用 in 檢查是否包含關鍵字
-                title_td = td
-                break
-        
-        # 確認 title_tag 是否找到
-        # print("Title tag found:", title_tag)
-        # print("-----------------------------------------------------------------")
-        
-        if title_td is None:
-            raise ValueError(f"無法找到包含 '{self.title}' 的 <td> 標籤，請檢查標題內容。")
-        
-        tag: Tag = title_td.parent  # title_td.parent 應該會是包含所有選項的 <tr> 標籤
+        title_tag = soup.find(text=self.title)
+        tag: Tag = title_tag.parent
         return tag
-
 
     def get_optgroups(self):
         optgroups = self.tag.find_all("optgroup")
@@ -141,30 +102,10 @@ class InternalHddOption:
         warranty = match.group()
         return translator[warranty]
 
-    # # 僅用原價 (不判斷漲、特價)
-    # def get_price(self):
-    #     match = re.search(r"(?<=\$)(\d+)", self.describe)
-    #     price = match.group()
-    #     return int(price)
-
-    # 使用實際價格
     def get_price(self):
-        # 匹配箭頭後的價格，提取箭頭後的數字
-        match = re.search(r"\$[\d,]+(?:↘|↗)\$([\d,]+)", self.describe)
-        #match = re.search(r"\$([\d,]+)(?:↘|↗)\$([\d,]+)", self.describe)
-        if match:
-            price = match.group(1)  # 取箭頭後的價格
-            return int(price)
-        else:
-            # 如果沒有箭頭，則返回原價格
-            match = re.search(r"(?<=\$)(\d+)", self.describe)
-            if match:
-                price = match.group(1)
-                return int(price)
-            else:
-                # 如果沒有找到任何價格
-                return None
-
+        match = re.search(r"(?<=\$)(\d+)", self.describe)
+        price = match.group()
+        return int(price)
 
     def get_cp_value(self):
         # return self.size * 1_000_000 / self.price # 舊版CP值
@@ -174,25 +115,12 @@ class InternalHddOption:
 
 
 def save_to_html(options: list):
-
-    # 程序根目錄
-    base_path = Path(__file__).resolve().parent.parent
-
-    # 檢查目錄是否存在，若不存在則建立
-    folder_path = base_path / "res" / "html"
-    if not folder_path.exists():
-        folder_path.mkdir(parents=True)
-
-    # 讀取 jinja2 後渲染
-    template_path = base_path / "templates" / "internal-hdd.jinja2"
+    template_path = Path("../templates/internal-hdd.jinja2")
     content = template_path.read_text(encoding='utf-8')
     template = Template(content)
 
-    # 渲染 HTML
     html = template.render(items=options, update_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    
-    # 儲存 HTML檔案
-    path = base_path / "res" / "html" / "internal-hdd.html"
+    path = Path("../res/html/internal-hdd.html")
     path.write_text(html, encoding='utf-8')
 
 

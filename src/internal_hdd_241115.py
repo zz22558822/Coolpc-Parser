@@ -134,25 +134,12 @@ class InternalHddOption:
         rpm = match.group()
         return int(rpm)
 
-    # # 保固判斷年
-    # def get_warranty(self):
-    #     match = re.search(r"(?<=/)\w(?=年)", self.describe)
-    #     if not match:
-    #         return None
-    #     warranty = match.group()
-    #     return translator[warranty]
-
-    # 保固判斷年 增加多位數年度與防止錯誤
     def get_warranty(self):
-        match = re.search(r"(?<=/)\w+(?=年)", self.describe)
+        match = re.search(r"(?<=/)\w(?=年)", self.describe)
         if not match:
             return None
         warranty = match.group()
-        # 判斷是否數字
-        if warranty.isdigit():
-            return int(warranty)
-        # 2. 如果不是數字則查 translator
-        return translator.get(warranty, warranty)
+        return translator[warranty]
 
     # # 僅用原價 (不判斷漲、特價)
     # def get_price(self):
@@ -204,10 +191,8 @@ def save_to_html(options: list):
     # 渲染 HTML
     html = template.render(items=options, update_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     
-    # 取得今天的日期並轉換為指定的格式 YYMMDD
-    today_date = datetime.now().strftime("%Y%m%d")
     # 儲存 HTML檔案
-    path = base_path / "res" / "html" / f"internal-hdd-{today_date}.html"
+    path = base_path / "res" / "html" / "internal-hdd.html"
     path.write_text(html, encoding='utf-8')
 
 

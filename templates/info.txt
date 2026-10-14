@@ -1,0 +1,11 @@
+# 當前使用
+internal-hdd.jinja2
+
+# v1 舊版無美觀UI
+internal-hdd_1.jinja2
+
+# v2 當前推薦 現代化 無蒐藏
+internal-hdd_2.jinja2
+
+# v3 現代化 有蒐藏 但匯出功能異常
+internal-hdd_3.jinja2

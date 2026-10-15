@@ -1,4 +1,5 @@
 import re
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -7,6 +8,7 @@ from jinja2 import Template
 
 from utilits import get_index_soup, translator
 
+log = logging.getLogger(__name__)
 
 class InternalHdd:
     def __init__(self):
@@ -67,11 +69,15 @@ class InternalHdd:
     def get_options(self):
         options = list()
         for group in self.optgroups:
-            subtitle = group["label"]
+            subtitle = group.get("label", "")
             for option_tag in group.find_all("option"):
                 if option_tag.has_attr("disabled"):
                     continue
-                a_option = InternalHddOption(self.title, subtitle, option_tag.text)
+                try:
+                    a_option = InternalHddOption(self.title, subtitle, option_tag.text)
+                except Exception:
+                    log.exception("解析失敗，已略過: %s", option_tag.text)
+                    continue
                 options.append(a_option)
         return options
 
@@ -96,7 +102,9 @@ class InternalHddOption:
         return brand
 
     def get_size(self):
-        match = re.search(r"(\d+)(TB|G)", self.describe)
+        match = re.search(r"(\d+)(TB|G)(?![A-Za-z])", self.describe)
+        if not match:
+            return None
         size = match.group(1)
         size = int(size)
         unit = match.group(2)
@@ -120,7 +128,7 @@ class InternalHddOption:
         return memory
 
     def get_model(self):
-        match = re.search(r"(?<=\()(\w|^/)+(?=\))", self.describe)
+        match = re.search(r"(?<=[\(（｛{])[A-Za-z0-9\-_/]+(?=[\)）｝}])", self.describe)
         if not match:
             return None
         model = match.group()
@@ -144,7 +152,7 @@ class InternalHddOption:
 
     # 保固判斷年 增加多位數年度與防止錯誤
     def get_warranty(self):
-        match = re.search(r"(?<=/)\w+(?=年)", self.describe)
+        match = re.search(r"(?<=/)[0-9一二三四五六七八九十]+(?=年)", self.describe)
         if not match:
             return None
         warranty = match.group()
@@ -167,19 +175,21 @@ class InternalHddOption:
         #match = re.search(r"\$([\d,]+)(?:↘|↗)\$([\d,]+)", self.describe)
         if match:
             price = match.group(1)  # 取箭頭後的價格
-            return int(price)
+            return int(price.replace(",", ""))
         else:
             # 如果沒有箭頭，則返回原價格
             match = re.search(r"(?<=\$)(\d+)", self.describe)
             if match:
                 price = match.group(1)
-                return int(price)
+                return int(price.replace(",", ""))
             else:
                 # 如果沒有找到任何價格
                 return None
 
 
     def get_cp_value(self):
+        if not self.price or not self.size:
+            return None
         # return self.size * 1_000_000 / self.price # 舊版CP值
         # return self.price / self.size * 1_000_000 # MB計算
         # return self.price / self.size * 1_000 # GB計算
@@ -193,13 +203,12 @@ def save_to_html(options: list):
 
     # 檢查目錄是否存在，若不存在則建立
     folder_path = base_path / "res" / "html"
-    if not folder_path.exists():
-        folder_path.mkdir(parents=True)
+    folder_path.mkdir(parents=True, exist_ok=True)
 
     # 讀取 jinja2 後渲染
     template_path = base_path / "templates" / "internal-hdd.jinja2"
     content = template_path.read_text(encoding='utf-8')
-    template = Template(content)
+    template = Template(content, autoescape=True)
 
     # 渲染 HTML
     html = template.render(items=options, update_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
